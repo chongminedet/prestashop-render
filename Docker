@@ -1,5 +1,4 @@
 FROM prestashop/prestashop:8-apache
 
-FROM prestashop/prestashop:8-apache
-
-CMD ["/bin/bash", "-c", "if [ ! -f /var/www/html/app/config/parameters.php ]; then php /var/www/html/install/index_cli.php --step=all --domain=prestashop-render.onrender.com --db_server=mysql-b797ba6-edetun7-ffdf.j.aivencloud.com:28754 --db_name=defaultdb --db_user=avnadmin --db_password='AVNS_nhUiLyDCe7q0J59NxlW' --email='admin@example.com' --password='PrestaShopPass2026!' && rm -rf /var/www/html/install; fi && apache2-foreground"]
+ENTRYPOINT ["docker-php-entrypoint"]
+CMD ["apache2-foreground"]
