@@ -1,4 +1,8 @@
 FROM prestashop/prestashop:8-apache
 
-ENTRYPOINT ["docker-php-entrypoint"]
-CMD ["apache2-foreground"]
+RUN rm -rf /var/www/html/install \
+    && a2enmod headers \
+    && echo 'SetEnvIf X-Forwarded-Proto "^https$" HTTPS=on' >> /etc/apache2/conf-available/reverse-proxy.conf \
+    && a2enconf reverse-proxy
+
+CMD ["/bin/bash", "-c", "cat << 'EOF' > /var/www/html/app/config/parameters.php\n<?php return array (\n  'parameters' => \n  array (\n    'database_host' => 'switchback.proxy.rlwy.net:52550',\n    'database_port' => '',\n    'database_name' => 'railway',\n    'database_user' => 'root',\n    'database_password' => 'rvVFnMlGzMFoVFPMlAWvuoUjwqFOEQum',\n    'database_prefix' => 'ps_',\n    'database_engine' => 'InnoDB',\n    'cookie_key' => 'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',\n    'cookie_iv' => '12345678',\n    'ps_caching' => 'CacheMemcache',\n    'ps_cache_enable' => false,\n    'ps_creation_date' => '2026-10-08',\n    'locale' => 'en-US',\n    'use_debug_mode' => false,\n  ),\n);\nEOF\napache2-foreground"]
