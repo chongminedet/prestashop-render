@@ -1,3 +1,4 @@
-FROM prestashop/prestashop:8.1-apache
+FROM prestashop/prestashop:8-apache
 
-CMD ["/bin/bash", "-c", "if [ -f /tmp/docker_run_presta.sh ]; then /tmp/docker_run_presta.sh; else /tmp/docker_run.sh; fi"]
+ENTRYPOINT ["docker-php-entrypoint"]
+CMD ["apache2-foreground"]
