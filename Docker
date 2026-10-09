@@ -3,8 +3,8 @@ FROM prestashop/prestashop:8-apache
 RUN rm -rf /var/www/html/install \
     && echo 'Listen 0.0.0.0:80' > /etc/apache2/ports.conf \
     && echo 'ServerName 127.0.0.1' >> /etc/apache2/apache2.conf \
+    && sed -i '2i require_once __DIR__ . "/defines_ssl.inc.php";' /var/www/html/config/config.inc.php \
     && echo '<?php $_SERVER["HTTPS"] = "on"; $_SERVER["SERVER_PORT"] = 443;' > /var/www/html/config/defines_ssl.inc.php \
-    && sed -i '1s/^/require_once __DIR__ . "\/defines_ssl.inc.php";\n/' /var/www/html/config/config.inc.php \
     && echo '#!/bin/bash' > /run-app.sh \
     && echo 'set -e' >> /run-app.sh \
     && echo 'cat << "EOF" > /var/www/html/app/config/parameters.php' >> /run-app.sh \
