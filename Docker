@@ -2,12 +2,17 @@ FROM prestashop/prestashop:8-apache
 
 ENV PS_FOLDER_ADMIN=admin-panel
 
+# Perform directory copying and initial setup strictly during BUILD time
 RUN rm -rf /var/www/html/install \
     && echo 'Listen 0.0.0.0:80' > /etc/apache2/ports.conf \
     && echo 'ServerName 127.0.0.1' >> /etc/apache2/apache2.conf \
     && a2enmod headers \
     && sed -i '2i $_SERVER["HTTPS"] = "on"; $_SERVER["SERVER_PORT"] = 443;' /var/www/html/config/defines.inc.php \
-    && echo '#!/bin/bash' > /run-app.sh \
+    && (cp -a /var/www/html/admin-dev /var/www/html/admin-panel 2>/dev/null || cp -a /var/www/html/admin /var/www/html/admin-panel 2>/dev/null || true) \
+    && chown -R www-data:www-data /var/www/html/admin-panel /var/www/html/config
+
+# Lightweight runtime script that executes instantly
+RUN echo '#!/bin/bash' > /run-app.sh \
     && echo 'set -e' >> /run-app.sh \
     && echo 'cat << "EOF" > /var/www/html/app/config/parameters.php' >> /run-app.sh \
     && echo '<?php return array (' >> /run-app.sh \
@@ -29,13 +34,8 @@ RUN rm -rf /var/www/html/install \
     && echo '  ),' >> /run-app.sh \
     && echo ');' >> /run-app.sh \
     && echo 'EOF' >> /run-app.sh \
-    && echo 'if [ ! -d /var/www/html/admin-panel ]; then' >> /run-app.sh \
-    && echo '  if [ -d /var/www/html/admin-dev ]; then cp -a /var/www/html/admin-dev /var/www/html/admin-panel; fi' >> /run-app.sh \
-    && echo '  if [ -d /var/www/html/admin ]; then cp -a /var/www/html/admin /var/www/html/admin-panel; fi' >> /run-app.sh \
-    && echo 'fi' >> /run-app.sh \
-    && echo 'rm -rf /var/www/html/var/cache/*' >> /run-app.sh \
-    && echo 'chown -R www-data:www-data /var/www/html' >> /run-app.sh \
-    && echo 'chmod -R 775 /var/www/html/var /var/www/html/app/config /var/www/html/admin-panel' >> /run-app.sh \
+    && echo 'rm -rf /var/www/html/var/cache/prod/* /var/www/html/var/cache/dev/*' >> /run-app.sh \
+    && echo 'chown -R www-data:www-data /var/www/html/app/config/parameters.php /var/www/html/var/cache' >> /run-app.sh \
     && echo 'exec apache2-foreground' >> /run-app.sh \
     && chmod +x /run-app.sh
 
