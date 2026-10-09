@@ -1,14 +1,19 @@
 FROM prestashop/prestashop:8-apache
 
+ENV PS_FOLDER_ADMIN=admin-panel
+ENV PS_INSTALL_AUTO=0
+ENV PS_ERASE_DB=0
+
 RUN rm -rf /var/www/html/install \
     && echo 'Listen 0.0.0.0:80' > /etc/apache2/ports.conf \
     && echo 'ServerName 127.0.0.1' >> /etc/apache2/apache2.conf \
-    && echo '<?php $_SERVER["HTTPS"] = "on"; $_SERVER["SERVER_PORT"] = 443;' > /var/www/html/config/defines_ssl.inc.php \
-    && echo '#!/bin/bash' > /run-app.sh \
+    && a2enmod headers \
+    && echo 'SetEnvIf X-Forwarded-Proto "^https$" HTTPS=on' >> /etc/apache2/conf-available/reverse-proxy.conf \
+    && a2enconf reverse-proxy
+
+# Boot script writing parameters and launching Apache
+RUN echo '#!/bin/bash' > /run-app.sh \
     && echo 'set -e' >> /run-app.sh \
-    && echo 'if [ ! -d /var/www/html/admin-panel ]; then' >> /run-app.sh \
-    && echo '  cp -a /var/www/html/admin-dev /var/www/html/admin-panel 2>/dev/null || cp -a /var/www/html/admin /var/www/html/admin-panel 2>/dev/null || true' >> /run-app.sh \
-    && echo 'fi' >> /run-app.sh \
     && echo 'cat << "EOF" > /var/www/html/app/config/parameters.php' >> /run-app.sh \
     && echo '<?php return array (' >> /run-app.sh \
     && echo '  "parameters" => array (' >> /run-app.sh \
@@ -25,12 +30,17 @@ RUN rm -rf /var/www/html/install \
     && echo '    "ps_cache_enable" => false,' >> /run-app.sh \
     && echo '    "ps_creation_date" => "2026-10-08",' >> /run-app.sh \
     && echo '    "locale" => "en-US",' >> /run-app.sh \
-    && echo '    "use_debug_mode" => true,' >> /run-app.sh \
+    && echo '    "use_debug_mode" => false,' >> /run-app.sh \
     && echo '  ),' >> /run-app.sh \
     && echo ');' >> /run-app.sh \
     && echo 'EOF' >> /run-app.sh \
+    && echo 'if [ ! -d /var/www/html/admin-panel ]; then' >> /run-app.sh \
+    && echo '  if [ -d /var/www/html/admin-dev ]; then mv /var/www/html/admin-dev /var/www/html/admin-panel; fi' >> /run-app.sh \
+    && echo '  if [ -d /var/www/html/admin ]; then mv /var/www/html/admin /var/www/html/admin-panel; fi' >> /run-app.sh \
+    && echo 'fi' >> /run-app.sh \
     && echo 'rm -rf /var/www/html/var/cache/prod/* /var/www/html/var/cache/dev/*' >> /run-app.sh \
-    && echo 'chown -R www-data:www-data /var/www/html/app/config/parameters.php /var/www/html/admin-panel /var/www/html/var/cache' >> /run-app.sh \
+    && echo 'chown -R www-data:www-data /var/www/html/app/config/parameters.php /var/www/html/var/cache' >> /run-app.sh \
+    && echo 'if [ -d /var/www/html/admin-panel ]; then chown -R www-data:www-data /var/www/html/admin-panel; fi' >> /run-app.sh \
     && echo 'exec apache2-foreground' >> /run-app.sh \
     && chmod +x /run-app.sh
 
