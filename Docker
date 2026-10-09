@@ -19,8 +19,8 @@ RUN echo '#!/bin/bash' > /run-app.sh \
     && echo 'cat << "EOF" > /var/www/html/app/config/parameters.php' >> /run-app.sh \
     && echo '<?php return array (' >> /run-app.sh \
     && echo '  "parameters" => array (' >> /run-app.sh \
-    && echo '    "database_host" => "switchback.proxy.rlwy.net:52550",' >> /run-app.sh \
-    && echo '    "database_port" => "",' >> /run-app.sh \
+    && echo '    "database_host" => "switchback.proxy.rlwy.net",' >> /run-app.sh \
+    && echo '    "database_port" => "52550",' >> /run-app.sh \
     && echo '    "database_name" => "railway",' >> /run-app.sh \
     && echo '    "database_user" => "root",' >> /run-app.sh \
     && echo '    "database_password" => "rvVFnMlGzMFoVFPMlAWvuoUjwqFOEQum",' >> /run-app.sh \
@@ -28,6 +28,7 @@ RUN echo '#!/bin/bash' > /run-app.sh \
     && echo '    "database_engine" => "InnoDB",' >> /run-app.sh \
     && echo '    "cookie_key" => "abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",' >> /run-app.sh \
     && echo '    "cookie_iv" => "12345678",' >> /run-app.sh \
+    && echo '    "new_cookie_key" => "def00000b84c5c2f9a38805b977fbca600b399299f7e4093c7d183eafc2b4f1292fd46835f079f1e280d603a8a6c14adbe1dad8b8165ad8026dc18485e77e0bea04324de",' >> /run-app.sh \
     && echo '    "secret" => "abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",' >> /run-app.sh \
     && echo '    "ps_caching" => "CacheMemcache",' >> /run-app.sh \
     && echo '    "ps_cache_enable" => false,' >> /run-app.sh \
@@ -50,4 +51,4 @@ RUN echo '#!/bin/bash' > /run-app.sh \
     && echo 'exec apache2-foreground' >> /run-app.sh \
     && chmod +x /run-app.sh
 
-CMD ["/run-app.sh"]
+CMD ["/run-app.sh"]   
