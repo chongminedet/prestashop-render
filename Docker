@@ -1,18 +1,13 @@
 FROM prestashop/prestashop:8-apache
 
 ENV PS_FOLDER_ADMIN=admin-panel
-ENV PS_INSTALL_AUTO=0
-ENV PS_ERASE_DB=0
 
 RUN rm -rf /var/www/html/install \
     && echo 'Listen 0.0.0.0:80' > /etc/apache2/ports.conf \
     && echo 'ServerName 127.0.0.1' >> /etc/apache2/apache2.conf \
     && a2enmod headers \
-    && echo 'SetEnvIf X-Forwarded-Proto "^https$" HTTPS=on' >> /etc/apache2/conf-available/reverse-proxy.conf \
-    && a2enconf reverse-proxy
-
-# Boot script writing parameters and launching Apache
-RUN echo '#!/bin/bash' > /run-app.sh \
+    && sed -i '2i $_SERVER["HTTPS"] = "on"; $_SERVER["SERVER_PORT"] = 443;' /var/www/html/config/defines.inc.php \
+    && echo '#!/bin/bash' > /run-app.sh \
     && echo 'set -e' >> /run-app.sh \
     && echo 'cat << "EOF" > /var/www/html/app/config/parameters.php' >> /run-app.sh \
     && echo '<?php return array (' >> /run-app.sh \
