@@ -29,7 +29,7 @@ RUN echo '#!/bin/bash' > /run-app.sh \
     && echo '    "ps_cache_enable" => false,' >> /run-app.sh \
     && echo '    "ps_creation_date" => "2026-10-08",' >> /run-app.sh \
     && echo '    "locale" => "en-US",' >> /run-app.sh \
-    && echo '    "use_debug_mode" => false,' >> /run-app.sh \
+   && echo '    "use_debug_mode" => true,' >> /run-app.sh \
     && echo '  ),' >> /run-app.sh \
     && echo ');' >> /run-app.sh \
     && echo 'EOF' >> /run-app.sh \
