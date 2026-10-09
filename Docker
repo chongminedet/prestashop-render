@@ -1,7 +1,7 @@
 FROM prestashop/prestashop:8-apache
 
 RUN rm -rf /var/www/html/install \
-    && mv /var/www/html/admin /var/www/html/admin-panel \
+    && (cp -a /var/www/html/admin-dev /var/www/html/admin-panel || cp -a /var/www/html/admin /var/www/html/admin-panel) \
     && echo 'Listen 0.0.0.0:80' > /etc/apache2/ports.conf \
     && echo 'ServerName 127.0.0.1' >> /etc/apache2/apache2.conf \
     && sed -i '2i require_once __DIR__ . "/defines_ssl.inc.php";' /var/www/html/config/config.inc.php \
