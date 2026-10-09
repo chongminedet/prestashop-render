@@ -6,12 +6,16 @@ RUN rm -rf /var/www/html/install \
     && echo 'Listen 0.0.0.0:80' > /etc/apache2/ports.conf \
     && echo 'ServerName 127.0.0.1' >> /etc/apache2/apache2.conf \
     && a2enmod headers \
-    && sed -i '2i $_SERVER["HTTPS"] = "on"; $_SERVER["SERVER_PORT"] = 443;' /var/www/html/config/defines.inc.php \
-    && (cp -a /var/www/html/admin-dev /var/www/html/admin-panel 2>/dev/null || cp -a /var/www/html/admin /var/www/html/admin-panel 2>/dev/null || true) \
-    && chown -R www-data:www-data /var/www/html/admin-panel /var/www/html/config
+    && (cp -a /var/www/html/admin-dev /var/www/html/admin-panel 2>/dev/null || cp -a /var/www/html/admin /var/www/html/admin-panel 2>/dev/null || true)
 
 RUN echo '#!/bin/bash' > /run-app.sh \
     && echo 'set -e' >> /run-app.sh \
+    && echo 'cat << "EOF" > /var/www/html/config/defines_custom.inc.php' >> /run-app.sh \
+    && echo '<?php' >> /run-app.sh \
+    && echo '$_SERVER["HTTPS"] = "on";' >> /run-app.sh \
+    && echo '$_SERVER["SERVER_PORT"] = 443;' >> /run-app.sh \
+    && echo 'define("_PS_MODE_DEV_", true);' >> /run-app.sh \
+    && echo 'EOF' >> /run-app.sh \
     && echo 'cat << "EOF" > /var/www/html/app/config/parameters.php' >> /run-app.sh \
     && echo '<?php return array (' >> /run-app.sh \
     && echo '  "parameters" => array (' >> /run-app.sh \
@@ -29,12 +33,18 @@ RUN echo '#!/bin/bash' > /run-app.sh \
     && echo '    "ps_cache_enable" => false,' >> /run-app.sh \
     && echo '    "ps_creation_date" => "2026-10-08",' >> /run-app.sh \
     && echo '    "locale" => "en-US",' >> /run-app.sh \
-   && echo '    "use_debug_mode" => true,' >> /run-app.sh \
+    && echo '    "use_debug_mode" => true,' >> /run-app.sh \
+    && echo '    "mailer_transport" => "smtp",' >> /run-app.sh \
+    && echo '    "mailer_host" => "127.0.0.1",' >> /run-app.sh \
+    && echo '    "mailer_user" => null,' >> /run-app.sh \
+    && echo '    "mailer_password" => null,' >> /run-app.sh \
     && echo '  ),' >> /run-app.sh \
     && echo ');' >> /run-app.sh \
     && echo 'EOF' >> /run-app.sh \
-    && echo 'rm -rf /var/www/html/var/cache/prod/* /var/www/html/var/cache/dev/*' >> /run-app.sh \
-    && echo 'chown -R www-data:www-data /var/www/html/app/config/parameters.php /var/www/html/var/cache' >> /run-app.sh \
+    && echo 'rm -rf /var/www/html/var/cache/*' >> /run-app.sh \
+    && echo 'mkdir -p /var/www/html/var/cache /var/www/html/var/logs' >> /run-app.sh \
+    && echo 'chown -R www-data:www-data /var/www/html/var /var/www/html/app/config /var/www/html/config /var/www/html/admin-panel' >> /run-app.sh \
+    && echo 'chmod -R 777 /var/www/html/var/cache /var/www/html/var/logs' >> /run-app.sh \
     && echo 'exec apache2-foreground' >> /run-app.sh \
     && chmod +x /run-app.sh
 
