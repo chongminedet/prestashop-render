@@ -14,7 +14,7 @@ RUN echo '#!/bin/bash' > /run-app.sh \
     && echo '<?php' >> /run-app.sh \
     && echo '$_SERVER["HTTPS"] = "on";' >> /run-app.sh \
     && echo '$_SERVER["SERVER_PORT"] = 443;' >> /run-app.sh \
-    && echo 'define("_PS_MODE_DEV_", true);' >> /run-app.sh \
+    && echo 'define("_PS_MODE_DEV_", false);' >> /run-app.sh \
     && echo 'EOF' >> /run-app.sh \
     && echo 'cat << "EOF" > /var/www/html/app/config/parameters.php' >> /run-app.sh \
     && echo '<?php return array (' >> /run-app.sh \
@@ -33,11 +33,13 @@ RUN echo '#!/bin/bash' > /run-app.sh \
     && echo '    "ps_cache_enable" => false,' >> /run-app.sh \
     && echo '    "ps_creation_date" => "2026-10-08",' >> /run-app.sh \
     && echo '    "locale" => "en-US",' >> /run-app.sh \
-    && echo '    "use_debug_mode" => true,' >> /run-app.sh \
+    && echo '    "use_debug_mode" => false,' >> /run-app.sh \
     && echo '    "mailer_transport" => "smtp",' >> /run-app.sh \
     && echo '    "mailer_host" => "127.0.0.1",' >> /run-app.sh \
     && echo '    "mailer_user" => null,' >> /run-app.sh \
     && echo '    "mailer_password" => null,' >> /run-app.sh \
+    && echo '    "api_public_key" => null,' >> /run-app.sh \
+    && echo '    "api_private_key" => null,' >> /run-app.sh \
     && echo '  ),' >> /run-app.sh \
     && echo ');' >> /run-app.sh \
     && echo 'EOF' >> /run-app.sh \
