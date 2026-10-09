@@ -2,7 +2,6 @@ FROM prestashop/prestashop:8-apache
 
 ENV PS_FOLDER_ADMIN=admin-panel
 
-# Perform directory copying and initial setup strictly during BUILD time
 RUN rm -rf /var/www/html/install \
     && echo 'Listen 0.0.0.0:80' > /etc/apache2/ports.conf \
     && echo 'ServerName 127.0.0.1' >> /etc/apache2/apache2.conf \
@@ -11,7 +10,6 @@ RUN rm -rf /var/www/html/install \
     && (cp -a /var/www/html/admin-dev /var/www/html/admin-panel 2>/dev/null || cp -a /var/www/html/admin /var/www/html/admin-panel 2>/dev/null || true) \
     && chown -R www-data:www-data /var/www/html/admin-panel /var/www/html/config
 
-# Lightweight runtime script that executes instantly
 RUN echo '#!/bin/bash' > /run-app.sh \
     && echo 'set -e' >> /run-app.sh \
     && echo 'cat << "EOF" > /var/www/html/app/config/parameters.php' >> /run-app.sh \
@@ -26,11 +24,12 @@ RUN echo '#!/bin/bash' > /run-app.sh \
     && echo '    "database_engine" => "InnoDB",' >> /run-app.sh \
     && echo '    "cookie_key" => "abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",' >> /run-app.sh \
     && echo '    "cookie_iv" => "12345678",' >> /run-app.sh \
+    && echo '    "secret" => "abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",' >> /run-app.sh \
     && echo '    "ps_caching" => "CacheMemcache",' >> /run-app.sh \
     && echo '    "ps_cache_enable" => false,' >> /run-app.sh \
     && echo '    "ps_creation_date" => "2026-10-08",' >> /run-app.sh \
     && echo '    "locale" => "en-US",' >> /run-app.sh \
-    && echo '    "use_debug_mode" => true,' >> /run-app.sh \
+    && echo '    "use_debug_mode" => false,' >> /run-app.sh \
     && echo '  ),' >> /run-app.sh \
     && echo ');' >> /run-app.sh \
     && echo 'EOF' >> /run-app.sh \
