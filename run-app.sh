@@ -69,6 +69,32 @@ else
 fi
 
 # ---------------------------------------------------------------------------
+# 3b. Optional one-time Back Office password reset
+#
+#     No mail server is configured on this stack, so PrestaShop's
+#     "I forgot my password" e-mail can never arrive. To recover access,
+#     set PS_ADMIN_RESET_PASSWORD in Render: on the next boot the first
+#     employee's password hash is replaced with a bcrypt hash of that
+#     value (the same hashing PrestaShop itself uses at login).
+#
+#     IMPORTANT: log in, then DELETE the variable again. While it exists,
+#     every restart re-applies it and would undo later password changes.
+# ---------------------------------------------------------------------------
+if [ "$SHOP_INSTALLED" = "1" ] && [ -n "${PS_ADMIN_RESET_PASSWORD:-}" ]; then
+    ADMIN_HASH="$(PS_ADMIN_RESET_PASSWORD="$PS_ADMIN_RESET_PASSWORD" \
+        php -r 'echo password_hash(getenv("PS_ADMIN_RESET_PASSWORD"), PASSWORD_BCRYPT);')" || ADMIN_HASH=""
+    if [ -n "$ADMIN_HASH" ] && MYSQL_PWD="${DATABASE_PASSWORD:-}" mysql --connect-timeout=5 \
+        -h "$DATABASE_HOST" -P "${DATABASE_PORT:-3306}" \
+        -u "${DATABASE_USER:-root}" "${DATABASE_NAME}" \
+        -e "UPDATE ${DATABASE_PREFIX:-ps_}employee SET passwd='${ADMIN_HASH}' ORDER BY id_employee LIMIT 1"
+    then
+        echo "[run-app] Back Office password reset applied (PS_ADMIN_RESET_PASSWORD)"
+    else
+        echo "[run-app] WARNING: Back Office password reset failed"
+    fi
+fi
+
+# ---------------------------------------------------------------------------
 # 4. Fresh cache/logs on every boot, correct ownership
 # ---------------------------------------------------------------------------
 rm -rf /var/www/html/var/cache/* /var/www/html/var/logs/* 2>/dev/null || true

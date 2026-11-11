@@ -46,6 +46,7 @@ variables (`run-app.sh` → `gen-parameters.php`).
 | `DATABASE_PASSWORD` | yes      | —       |                                               |
 | `DATABASE_PREFIX`   | no       | `ps_`   |                                               |
 | `PS_INSTALL_MODE`   | during setup | `0` | `1` = keep `/install` unlocked until the shop has an admin account in the database; set back to `0` afterwards |
+| `PS_ADMIN_RESET_PASSWORD` | recovery only | *(unset)* | While set, every boot resets the first Back Office employee's password to this value (no mail server exists for the "forgot password" e-mail). **Log in, then delete it.** |
 
 Cryptographic keys (`cookie_key`, `secret`, …) are deterministic by default
 so that sessions and password hashes stay valid across the disk wipes that
