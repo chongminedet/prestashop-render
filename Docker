@@ -1,54 +1,27 @@
 FROM prestashop/prestashop:8-apache
 
+# Back Office is served from /admin-panel
 ENV PS_FOLDER_ADMIN=admin-panel
 
-RUN rm -rf /var/www/html/install \
-    && echo 'Listen 0.0.0.0:80' > /etc/apache2/ports.conf \
+# Apache: listen on all interfaces, silence default-vhost warnings,
+# enable the headers module (used for security headers).
+#
+# NOTE: /var/www/html/install is intentionally KEPT in the image.
+# The database was lost when the Railway free tier was cancelled, so the
+# PrestaShop web installer must be runnable once against the new database.
+# After installation the runtime script locks it again (see run-app.sh).
+RUN echo 'Listen 0.0.0.0:80' > /etc/apache2/ports.conf \
     && echo 'ServerName 127.0.0.1' >> /etc/apache2/apache2.conf \
     && a2enmod headers \
-    && (cp -a /var/www/html/admin-dev /var/www/html/admin-panel 2>/dev/null || cp -a /var/www/html/admin /var/www/html/admin-panel 2>/dev/null || true)
+    && (cp -a /var/www/html/admin-dev /var/www/html/admin-panel 2>/dev/null \
+        || cp -a /var/www/html/admin /var/www/html/admin-panel 2>/dev/null \
+        || true)
 
-RUN echo '#!/bin/bash' > /run-app.sh \
-    && echo 'set -e' >> /run-app.sh \
-    && echo 'cat << "EOF" > /var/www/html/config/defines_custom.inc.php' >> /run-app.sh \
-    && echo '<?php' >> /run-app.sh \
-    && echo '$_SERVER["HTTPS"] = "on";' >> /run-app.sh \
-    && echo '$_SERVER["SERVER_PORT"] = 443;' >> /run-app.sh \
-    && echo 'define("_PS_MODE_DEV_", false);' >> /run-app.sh \
-    && echo 'EOF' >> /run-app.sh \
-    && echo 'cat << "EOF" > /var/www/html/app/config/parameters.php' >> /run-app.sh \
-    && echo '<?php return array (' >> /run-app.sh \
-    && echo '  "parameters" => array (' >> /run-app.sh \
-    && echo '    "database_host" => "switchback.proxy.rlwy.net",' >> /run-app.sh \
-    && echo '    "database_port" => "52550",' >> /run-app.sh \
-    && echo '    "database_name" => "railway",' >> /run-app.sh \
-    && echo '    "database_user" => "root",' >> /run-app.sh \
-    && echo '    "database_password" => "rvVFnMlGzMFoVFPMlAWvuoUjwqFOEQum",' >> /run-app.sh \
-    && echo '    "database_prefix" => "ps_",' >> /run-app.sh \
-    && echo '    "database_engine" => "InnoDB",' >> /run-app.sh \
-    && echo '    "cookie_key" => "abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",' >> /run-app.sh \
-    && echo '    "cookie_iv" => "12345678",' >> /run-app.sh \
-    && echo '    "new_cookie_key" => "def00000b84c5c2f9a38805b977fbca600b399299f7e4093c7d183eafc2b4f1292fd46835f079f1e280d603a8a6c14adbe1dad8b8165ad8026dc18485e77e0bea04324de",' >> /run-app.sh \
-    && echo '    "secret" => "abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",' >> /run-app.sh \
-    && echo '    "ps_caching" => "CacheMemcache",' >> /run-app.sh \
-    && echo '    "ps_cache_enable" => false,' >> /run-app.sh \
-    && echo '    "ps_creation_date" => "2026-10-08",' >> /run-app.sh \
-    && echo '    "locale" => "en-US",' >> /run-app.sh \
-    && echo '    "use_debug_mode" => false,' >> /run-app.sh \
-    && echo '    "mailer_transport" => "smtp",' >> /run-app.sh \
-    && echo '    "mailer_host" => "127.0.0.1",' >> /run-app.sh \
-    && echo '    "mailer_user" => null,' >> /run-app.sh \
-    && echo '    "mailer_password" => null,' >> /run-app.sh \
-    && echo '    "api_public_key" => null,' >> /run-app.sh \
-    && echo '    "api_private_key" => null,' >> /run-app.sh \
-    && echo '  ),' >> /run-app.sh \
-    && echo ');' >> /run-app.sh \
-    && echo 'EOF' >> /run-app.sh \
-    && echo 'rm -rf /var/www/html/var/cache/*' >> /run-app.sh \
-    && echo 'mkdir -p /var/www/html/var/cache /var/www/html/var/logs' >> /run-app.sh \
-    && echo 'chown -R www-data:www-data /var/www/html/var /var/www/html/app/config /var/www/html/config /var/www/html/admin-panel' >> /run-app.sh \
-    && echo 'chmod -R 777 /var/www/html/var/cache /var/www/html/var/logs' >> /run-app.sh \
-    && echo 'exec apache2-foreground' >> /run-app.sh \
-    && chmod +x /run-app.sh
+# Runtime scripts. Render Free instances have an ephemeral filesystem:
+# parameters.php is therefore regenerated from environment variables on
+# EVERY boot (see docker/run-app.sh) instead of being baked into the image.
+COPY run-app.sh /run-app.sh
+COPY gen-parameters.php /usr/local/bin/gen-parameters.php
+RUN chmod +x /run-app.sh
 
-CMD ["/run-app.sh"]   
+CMD ["/run-app.sh"]

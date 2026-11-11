@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PrestaShop Cloud Deployment — Architecture</title>
+  <style>
+    :root { --bg:#0f172a; --card:#1e293b; --accent:#38bdf8; --text:#e2e8f0; --muted:#94a3b8; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; background:var(--bg); color:var(--text); line-height:1.6; }
+    .wrap { max-width:900px; margin:0 auto; padding:3rem 1.5rem; }
+    h1 { font-size:2rem; margin-bottom:.5rem; }
+    h1 span { color:var(--accent); }
+    .sub { color:var(--muted); margin-bottom:2.5rem; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:1.25rem; margin-bottom:2.5rem; }
+    .card { background:var(--card); border:1px solid #334155; border-radius:12px; padding:1.5rem; }
+    .card h2 { font-size:1.05rem; color:var(--accent); margin-bottom:.75rem; }
+    .card ul { list-style:none; }
+    .card li { padding:.3rem 0; font-size:.92rem; color:var(--muted); border-bottom:1px dashed #2b3a4f; }
+    .card li:last-child { border-bottom:none; }
+    .card li b { color:var(--text); font-weight:600; }
+    .links { display:flex; gap:1rem; flex-wrap:wrap; }
+    .btn { display:inline-block; background:var(--accent); color:#0f172a; font-weight:700; padding:.7rem 1.4rem; border-radius:8px; text-decoration:none; }
+    .btn.ghost { background:transparent; color:var(--accent); border:2px solid var(--accent); }
+    footer { margin-top:3rem; color:var(--muted); font-size:.85rem; text-align:center; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>PrestaShop <span>Cloud Deployment</span></h1>
+    <p class="sub">Decoupled, free-tier e-commerce architecture — web tier and database hosted independently.</p>
+
+    <div class="grid">
+      <div class="card">
+        <h2>🌐 Web Tier — Render (Free)</h2>
+        <ul>
+          <li><b>Image:</b> prestashop/prestashop:8-apache</li>
+          <li><b>Runtime:</b> Apache + PHP 8.2</li>
+          <li><b>Admin path:</b> /admin-panel</li>
+          <li><b>Filesystem:</b> ephemeral — config regenerated from env on every boot</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h2>🗄️ Database — alwaysdata (Free)</h2>
+        <ul>
+          <li><b>Engine:</b> MariaDB 10.11</li>
+          <li><b>Access:</b> public TCP proxy, port 3306</li>
+          <li><b>Storage:</b> 1 GB SSD, daily backups</li>
+          <li><b>Decoupled:</b> never runs on the web instance</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h2>🔗 Architecture</h2>
+        <ul>
+          <li><b>Storefront:</b> prestashop-render.onrender.com</li>
+          <li><b>Flow:</b> Render edge → Apache/PHP → MariaDB over WAN</li>
+          <li><b>CI/CD:</b> GitHub → Render auto-deploy on push</li>
+          <li><b>TLS:</b> automatic HTTPS at Render's edge</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="links">
+      <a class="btn" href="https://prestashop-render.onrender.com/">Visit the storefront</a>
+      <a class="btn ghost" href="https://github.com/chongminedet/prestashop-render">Source on GitHub</a>
+    </div>
+
+    <footer>Companion page for the PrestaShop Cloud Deployment project · hosted on alwaysdata free hosting</footer>
+  </div>
+</body>
+</html>
